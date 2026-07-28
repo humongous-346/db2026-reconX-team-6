@@ -16,7 +16,7 @@ import java.util.Objects;
  * WHY:     FX has two natural sides — a EUR/USD trade is BOTH a buy of EUR
  *          AND a sell of USD. Modelling that with two distinct currency
  *          fields makes settlement-side reasoning explicit.
- * NOTIONAL CONVENTION:
+ *   NOTIONAL CONVENTION:
  *          The input notional is expressed in ccy1 (base currency).
  *          notional() returns the converted amount in ccy2 using fxRate.
  * OBSERVE: notional().currency() == ccy2; .amount() == notionalCcy1 * fxRate.

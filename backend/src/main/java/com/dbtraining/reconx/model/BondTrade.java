@@ -53,7 +53,7 @@ public final class BondTrade extends Trade {
     /** Notional = faceValue in the bond's currency. */
     @Override public Money notional() {
         // TODO(TICKET-ADV021): return new Money(faceValue, currency).
-        throw new UnsupportedOperationException("TICKET-ADV021");
+         return super.notional();
     }
 
     public String isin()              { return isin; }
@@ -102,7 +102,28 @@ public final class BondTrade extends Trade {
             //   - Objects.requireNonNull each required field.
             //   - maturityDate must not be before tradeDate (IllegalStateException otherwise).
             //   - return new BondTrade(this).
-            throw new UnsupportedOperationException("TICKET-ADV021");
+             Objects.requireNonNull(tradeRef, "tradeRef");
+            Objects.requireNonNull(isin, "isin");
+            Objects.requireNonNull(faceValue, "faceValue");
+            Objects.requireNonNull(couponRate, "couponRate");
+            Objects.requireNonNull(maturityDate, "maturityDate");
+            Objects.requireNonNull(currency, "currency");
+            Objects.requireNonNull(side, "side");
+            Objects.requireNonNull(tradeDate, "tradeDate");
+
+            if (faceValue.signum() <= 0)
+                throw new IllegalStateException("faceValue must be > 0");
+
+            if (couponRate.signum() < 0)
+                throw new IllegalStateException("couponRate must be >= 0");
+
+            if (!maturityDate.isAfter(tradeDate))
+                throw new IllegalStateException("maturityDate must be after tradeDate");
+
+            if (isin.length() != 12)
+                throw new IllegalStateException("ISIN must be 12 characters");
+
+            return new BondTrade(this);
         }
     }
 }

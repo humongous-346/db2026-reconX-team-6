@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import java.util.Currency;
 import java.util.Objects;
 
+import com.dbtraining.reconx.model.TradeType.AssetClass;
+
 /**
  * ============================================================================
  * TICKET-ADV019 — EquityTrade with Builder pattern
@@ -23,7 +25,7 @@ import java.util.Objects;
  * TICKET-ADV028 — equals/hashCode from tradeRef (Object methods on a regular class)
  * TICKET-ADV030 — toString() omits PII, prints reference/symbol/qty/price/side
  */
-public final class EquityTrade implements TradeType {
+public final class EquityTrade extends Trade {
 
     private final TradeRef tradeRef;
     private final String instrumentSymbol;
@@ -35,6 +37,11 @@ public final class EquityTrade implements TradeType {
     private final long counterpartyId;
 
     private EquityTrade(Builder b) {
+         super(
+            b.tradeRef,
+            new Money(b.quantity.multiply(b.price), b.currency),
+            b.tradeDate
+     );
         this.tradeRef         = b.tradeRef;
         this.instrumentSymbol = b.instrumentSymbol;
         this.quantity         = b.quantity;

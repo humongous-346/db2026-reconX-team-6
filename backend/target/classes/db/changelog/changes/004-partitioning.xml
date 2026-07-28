@@ -33,16 +33,19 @@
 
     <!-- Step 1: drop the non-partitioned trades created in 002 (CASCADE removes
          the settlements FK). Safe because seed data does not populate trades. -->
-    <changeSet id="004-trades-drop-nonpartitioned" author="student">
+    <changeSet id="004-trades-drop-nonpartitioned" author="trainer">
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
         </preConditions>
         <sql>DROP TABLE IF EXISTS trades CASCADE;</sql>
+        <rollback>
+            <sql>DROP TABLE IF EXISTS trades CASCADE;</sql>
+        </rollback>
     </changeSet>
 
     <!-- Step 2: range-partitioned parent on trade_date. PK / UNIQUE include
          the partition key (Postgres declarative-partitioning requirement). -->
-    <changeSet id="004-trades-partitioned-parent" author="student">
+    <changeSet id="004-trades-partitioned-parent" author="trainer">
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
         </preConditions>
@@ -72,9 +75,9 @@
         </rollback>
     </changeSet>
 
-    <!-- Step 3: rolling 12 monthly partitions (current_month - 11 .. current_month).
+    <!-- Step 3: rolling 12 monthly partitions (current_month - 11 .. current).
          Generated inside a DO block so we don't hard-code dates that go stale. -->
-    <changeSet id="004-trades-monthly-partitions" author="student">
+    <changeSet id="004-trades-monthly-partitions" author="trainer">
         <preConditions onFail="MARK_RAN">
             <dbms type="postgresql"/>
         </preConditions>

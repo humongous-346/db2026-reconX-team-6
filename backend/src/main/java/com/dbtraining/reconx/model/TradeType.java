@@ -30,7 +30,7 @@ import java.util.Comparator;
  */
 public sealed interface TradeType
         extends Comparable<TradeType>
-        permits EquityTrade, FXTrade, BondTrade, DerivativeTrade {
+        permits Trade {
 
     /** Stable natural key. Drives equals/hashCode. */
     TradeRef tradeRef();

@@ -74,4 +74,32 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="008-seed-trades" author="trainer">
+
+    <loadData
+            file="data/trades.csv"
+            tableName="trades"
+            separator=","
+            relativeToChangelogFile="true">
+
+        <column name="trade_ref" type="STRING"/>
+        <column name="instrument_id" type="NUMERIC"/>
+        <column name="counterparty_id" type="NUMERIC"/>
+        <column name="asset_class" type="STRING"/>
+        <column name="side" type="STRING"/>
+        <column name="quantity" type="NUMERIC"/>
+        <column name="price" type="NUMERIC"/>
+        <column name="trade_date" type="DATE"/>
+        <column name="status" type="STRING"/>
+
+    </loadData>
+
+    <rollback>
+        <sql>
+            DELETE FROM trades;
+        </sql>
+    </rollback>
+
+    </changeSet>
+
 </databaseChangeLog>

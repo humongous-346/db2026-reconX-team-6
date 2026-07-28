@@ -16,6 +16,9 @@ import java.util.Objects;
  * WHY:     FX has two natural sides — a EUR/USD trade is BOTH a buy of EUR
  *          AND a sell of USD. Modelling that with two distinct currency
  *          fields makes settlement-side reasoning explicit.
+ * NOTIONAL CONVENTION:
+ *          The input notional is expressed in ccy1 (base currency).
+ *          notional() returns the converted amount in ccy2 using fxRate.
  * OBSERVE: notional().currency() == ccy2; .amount() == notionalCcy1 * fxRate.
  * ============================================================================
  */
@@ -55,7 +58,7 @@ public final class FXTrade extends Trade {
     /** Notional in ccy2 = notionalCcy1 * fxRate. */
     @Override public Money notional() {
         // TODO(TICKET-ADV020): return new Money(notionalCcy1 * fxRate, ccy2).
-        throw new UnsupportedOperationException("TICKET-ADV020");
+          return new Money(notionalCcy1.multiply(fxRate), ccy2);
     }
 
     public Currency ccy1()           { return ccy1; }
@@ -102,7 +105,24 @@ public final class FXTrade extends Trade {
             //   - ccy1 must differ from ccy2 (IllegalStateException otherwise).
             //   - fxRate must be > 0.
             //   - return new FXTrade(this).
-            throw new UnsupportedOperationException("TICKET-ADV020");
+             Objects.requireNonNull(tradeRef, "tradeRef");
+            Objects.requireNonNull(ccy1, "ccy1");
+            Objects.requireNonNull(ccy2, "ccy2");
+            Objects.requireNonNull(notionalCcy1, "notionalCcy1");
+            Objects.requireNonNull(fxRate, "fxRate");
+            Objects.requireNonNull(side, "side");
+            Objects.requireNonNull(tradeDate, "tradeDate");
+
+            if (ccy1.equals(ccy2))
+                throw new IllegalStateException("ccy1 and ccy2 must differ");
+
+            if (notionalCcy1.signum() <= 0)
+                throw new IllegalStateException("notionalCcy1 must be > 0");
+
+            if (fxRate.signum() <= 0)
+                throw new IllegalStateException("fxRate must be > 0");
+
+            return new FXTrade(this);
         }
     }
 }

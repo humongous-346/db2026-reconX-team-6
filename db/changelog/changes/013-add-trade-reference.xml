@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+ xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="
+ http://www.liquibase.org/xml/ns/dbchangelog
+ http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd">
+
+
+<changeSet id="013-add-trade-reference" author="student">
+
+    <addColumn tableName="trades">
+
+        <column 
+            name="external_reference"
+            type="varchar(100)"/>
+
+    </addColumn>
+
+
+    <rollback>
+
+        <dropColumn 
+            tableName="trades"
+            columnName="external_reference"/>
+
+    </rollback>
+
+
+</changeSet>
+
+
+</databaseChangeLog>

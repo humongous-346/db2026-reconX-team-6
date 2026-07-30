@@ -1,0 +1,2 @@
+<include 
+    file="db/changelog/changes/012-liquibase-baseline.xml"/>

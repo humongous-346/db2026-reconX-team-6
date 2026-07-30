@@ -21,4 +21,8 @@
         <tagDatabase tag="v1.0.0-init"/>
     </changeSet>
 
+    <changeSet id="001-tag-release-1-0" author="trainer">
+        <tagDatabase tag="release-1.0"/>
+    </changeSet>
+
 </databaseChangeLog>

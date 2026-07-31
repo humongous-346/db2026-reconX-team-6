@@ -1,12 +1,23 @@
 /* TICKET-ADV098 — Flexbox page shell */
 :root {
   --color-primary: #003366;
+  --color-gold: #c8a951;
+  --color-success: #28a745;
+  --color-warning: #ffc107;
+  --color-danger: #dc3545;
+  --color-bg: #ffffff;
   --color-text: #1f2937;
   --color-surface: #f8fafc;
   --color-border: #d9e2ec;
+  --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
+  --radius: 4px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
 }
 
 * { box-sizing: border-box; }
@@ -15,7 +26,7 @@ html, body { height: 100%; margin: 0; }
 body {
   font-family: Arial, Helvetica, sans-serif;
   color: var(--color-text);
-  background: #ffffff;
+  background: var(--color-bg);
 }
 
 .app-shell {
@@ -31,12 +42,12 @@ body {
   gap: var(--space-4);
   padding: 0 var(--space-4);
   background: var(--color-primary);
-  color: #ffffff;
+  color: var(--color-bg);
 }
 
-.app-title { margin: 0; font-size: 1.125rem; }
+.app-title { margin: 0; font-size: var(--font-size-lg); }
 .app-nav { margin-left: auto; display: flex; gap: var(--space-3); }
-.app-nav a { color: #ffffff; text-decoration: none; }
+.app-nav a { color: var(--color-bg); text-decoration: none; }
 
 .app-body {
   flex: 1 1 auto;
@@ -67,12 +78,13 @@ body {
   min-width: 240px;
   padding: var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: var(--radius);
   background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
 }
 
-.stat-card h3 { margin: 0 0 var(--space-2) 0; }
-.stat-card p { margin: 0; font-size: 1.25rem; font-weight: 700; }
+.stat-card h3 { margin: 0 0 var(--space-2) 0; font-size: var(--font-size-sm); }
+.stat-card p { margin: 0; font-size: var(--font-size-lg); font-weight: 700; }
 
 .app-footer {
   flex: 0 0 48px;
@@ -80,5 +92,5 @@ body {
   align-items: center;
   justify-content: center;
   border-top: 1px solid var(--color-border);
-  background: #ffffff;
+  background: var(--color-bg);
 }

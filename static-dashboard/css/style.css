@@ -23,6 +23,18 @@
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
 
+:root {
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --color-bg: #111827;
+  --color-text: #f9fafb;
+  --color-surface: #1f2937;
+  --color-border: #374151;
+  color-scheme: dark;
+}
+
 body {
   font-family: Arial, Helvetica, sans-serif;
   color: var(--color-text);
@@ -48,6 +60,15 @@ body {
 .app-title { margin: 0; font-size: var(--font-size-lg); }
 .app-nav { margin-left: auto; display: flex; gap: var(--space-3); }
 .app-nav a { color: var(--color-bg); text-decoration: none; }
+#theme-toggle {
+  margin-left: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--color-bg);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+}
 
 .app-body {
   flex: 1 1 auto;

@@ -1,15 +1,22 @@
-// TICKET-ADV102 — theme toggle, persisted to localStorage; first paint reads
-// the persisted value to avoid a FOUC flash of the wrong theme.
 (function () {
   const stored = localStorage.getItem('reconx-theme') || 'light';
-  document.documentElement.dataset.theme = stored;
+  document.documentElement.setAttribute('data-theme', stored);
 
   document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.getElementById('theme-toggle');
-    btn && btn.addEventListener('click', () => {
-      const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-      document.documentElement.dataset.theme = next;
-      localStorage.setItem('reconx-theme', next);
+    const button = document.getElementById('theme-toggle');
+    if (!button) return;
+
+    const applyTheme = (theme) => {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('reconx-theme', theme);
+      button.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+      button.textContent = theme === 'dark' ? '☀️' : '🌙';
+    };
+
+    applyTheme(stored);
+    button.addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
     });
   });
 })();

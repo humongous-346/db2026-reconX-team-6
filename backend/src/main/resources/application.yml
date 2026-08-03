@@ -18,6 +18,10 @@ spring:
 
   # ADV012 — Liquibase classpath wiring (the classic starter bug is missing the
   # `classpath:` prefix here, which causes a silent skip on JAR builds).
+  sql:
+    init:
+      mode: never
+      
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.xml
     enabled: true

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReconX - Trades Table</title>
+  <!-- Link your global CSS stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <main class="app-main">
+      <h2>Trades Management</h2>
+      
+      <!-- TICKET-ADV106: The required table scroll container and data table -->
+      <div class="table-scroll">
+        <table class="data-table" id="trades-table">
+          <thead>
+            <tr>
+              <th data-col="tradeRef">TradeRef <span class="resize-handle"></span></th>
+              <th data-col="symbol">Symbol <span class="resize-handle"></span></th>
+              <th data-col="quantity" data-type="number">Quantity <span class="resize-handle"></span></th>
+              <th data-col="price" data-type="number">Price <span class="resize-handle"></span></th>
+              <th data-col="status">Status <span class="resize-handle"></span></th>
+            </tr>
+          </thead>
+          <tbody id="trades-tbody">
+            <!-- Rows will be injected dynamically via JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Link your custom trades logic script -->
+  <script src="js/trades.js"></script>
+</body>
+</html>

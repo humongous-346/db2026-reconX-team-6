@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!--
+  TICKET-ADV157 — Checkstyle ruleset for ReconX
+  Enforces Google-style Java conventions without being pedantic about Javadoc.
+  Kept intentionally lean so students can focus on architecture, not formatting.
+  Run:  ./mvnw checkstyle:check
+  Report: target/checkstyle-result.xml
+-->
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="error"/>
+
+    <!-- Disallow tab characters in source files -->
+    <module name="FileTabCharacter">
+        <property name="eachLine" value="true"/>
+    </module>
+
+    <!-- No trailing whitespace -->
+    <module name="RegexpSingleline">
+        <property name="format" value="\s+$"/>
+        <property name="message" value="Trailing whitespace."/>
+    </module>
+
+    <module name="TreeWalker">
+
+        <!-- Naming conventions -->
+        <module name="TypeName"/>
+        <module name="ConstantName"/>
+        <module name="LocalVariableName"/>
+        <module name="MemberName"/>
+        <module name="MethodName"/>
+        <module name="PackageName">
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
+        </module>
+        <module name="ParameterName"/>
+        <module name="StaticVariableName"/>
+
+        <!-- Imports -->
+        <module name="AvoidStarImport"/>
+        <module name="UnusedImports"/>
+        <module name="IllegalImport"/>
+        <module name="RedundantImport"/>
+
+        <!-- Code structure -->
+        <module name="OneTopLevelClass"/>
+        <module name="EmptyBlock">
+            <property name="option" value="TEXT"/>
+            <property name="tokens" value="LITERAL_WHILE,LITERAL_TRY,LITERAL_CATCH,LITERAL_FINALLY,LITERAL_DO,LITERAL_IF,LITERAL_ELSE,LITERAL_FOR,INSTANCE_INIT,STATIC_INIT,LITERAL_SWITCH,LITERAL_SYNCHRONIZED"/>
+        </module>
+        <module name="NeedBraces"/>
+        <module name="LeftCurly"/>
+        <module name="RightCurly"/>
+
+        <!-- Whitespace -->
+        <module name="GenericWhitespace"/>
+        <module name="MethodParamPad"/>
+        <module name="NoWhitespaceBefore"/>
+        <module name="ParenPad"/>
+        <module name="WhitespaceAfter"/>
+        <module name="WhitespaceAround">
+            <property name="allowEmptyConstructors" value="true"/>
+            <property name="allowEmptyMethods" value="true"/>
+            <property name="allowEmptyTypes" value="true"/>
+            <property name="allowEmptyLoops" value="true"/>
+        </module>
+        <module name="NoLineWrap"/>
+        <module name="EmptyLineSeparator">
+            <property name="allowNoEmptyLineBetweenFields" value="true"/>
+        </module>
+        <module name="SeparatorWrap">
+            <property name="id" value="SeparatorWrapDot"/>
+            <property name="tokens" value="DOT"/>
+            <property name="option" value="nl"/>
+        </module>
+        <module name="SeparatorWrap">
+            <property name="id" value="SeparatorWrapComma"/>
+            <property name="tokens" value="COMMA"/>
+            <property name="option" value="EOL"/>
+        </module>
+
+        <!-- Modifiers -->
+        <module name="ModifierOrder"/>
+        <module name="RedundantModifier"/>
+
+        <!-- Line length — 120 is generous enough for Spring annotations -->
+        <module name="LineLength">
+            <property name="max" value="120"/>
+            <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+        </module>
+
+        <!-- Miscellaneous -->
+        <module name="UpperEll"/>
+        <module name="ArrayTypeStyle"/>
+        <module name="OuterTypeFilename"/>
+    </module>
+</module>

@@ -1,6 +1,10 @@
 package com.dbtraining.reconx.service;
 
 import com.dbtraining.reconx.dto.ReconResult;
+import com.dbtraining.reconx.model.BondTrade;
+import com.dbtraining.reconx.model.DerivativeTrade;
+import com.dbtraining.reconx.model.EquityTrade;
+import com.dbtraining.reconx.model.FXTrade;
 import com.dbtraining.reconx.model.ReconciliationRule;
 import com.dbtraining.reconx.model.TradeType;
 import io.micrometer.core.annotation.Timed;
@@ -49,7 +53,24 @@ public class ReconciliationEngine {
         //     return internal.parallelStream()
         //         .map(in -> matchOne(in, externalByRef.get(in.tradeRef().value()), rule))
         //         .toList();
-        throw new UnsupportedOperationException("TICKET-ADV033");
+        if (internal == null || internal.isEmpty()
+        || external == null || external.isEmpty()) {
+           return List.of();
+         }
+
+        Map<String, TradeType> externalByRef =
+                external.stream()
+                        .collect(Collectors.toMap(
+                                t -> t.tradeRef().value(),
+                                Function.identity(),
+                                (a, b) -> a));
+
+        return internal.parallelStream()
+                .map(in -> matchOne(
+                        in,
+                        externalByRef.get(in.tradeRef().value()),
+                        rule))
+                .toList();
     }
 
     /**
@@ -72,7 +93,31 @@ public class ReconciliationEngine {
         // TODO(TICKET-ADV033): if external is null return ReconResult.breakResult(ref, "MISSING_EXTERNAL", ...).
         //   Otherwise pull priceQty() for both sides, compare via rule.matches(...),
         //   return ReconResult.matched(ref) or breakResult(ref, "VALUE_MISMATCH", details).
-        throw new UnsupportedOperationException("TICKET-ADV033");
+        String ref = internal.tradeRef().value();
+
+        if (external == null) {
+            return ReconResult.breakResult(
+                    ref,
+                    "MISSING_EXTERNAL",
+                    "External trade not found");
+        }
+
+        BigDecimal[] internalPQ = priceQty(internal);
+        BigDecimal[] externalPQ = priceQty(external);
+
+        if (rule.matches(
+                internalPQ[0],
+                internalPQ[1],
+                externalPQ[0],
+                externalPQ[1])) {
+
+            return ReconResult.matched(ref);
+        }
+
+        return ReconResult.breakResult(
+                ref,
+                "VALUE_MISMATCH",
+                "Price or quantity mismatch");
     }
 
     /** TICKET-ADV018 — exhaustive switch over the sealed hierarchy. */
@@ -81,6 +126,18 @@ public class ReconciliationEngine {
         //   (EquityTrade, FXTrade, BondTrade, DerivativeTrade) and return a
         //   BigDecimal[]{price, qty}. The compiler enforces exhaustiveness —
         //   omit a case and the build fails.
-        throw new UnsupportedOperationException("TICKET-ADV018");
+         return switch (t) {
+        case EquityTrade e ->
+                new BigDecimal[]{e.price(), e.quantity()};
+
+        case FXTrade fx ->
+                new BigDecimal[]{fx.fxRate(), fx.notionalCcy1()};
+
+        case BondTrade b ->
+                new BigDecimal[]{b.couponRate(), b.faceValue()};
+
+        case DerivativeTrade d ->
+                new BigDecimal[]{d.strike(), d.quantity()};
+    };
     }
 }

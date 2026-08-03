@@ -1,33 +1,55 @@
-package com.dbtraining.reconx.service;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.beans.factory.annotation.Autowired;
 
-@SpringBootTest
-@Testcontainers
-class ReconciliationIntegrationTest {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("reconx")
-            .withUsername("test")
-            .withPassword("test");
 
-    @DynamicPropertySource
-    static void props(DynamicPropertyRegistry r) {
-        r.add("spring.datasource.url", postgres::getJdbcUrl);
-        r.add("spring.datasource.username", postgres::getUsername);
-        r.add("spring.datasource.password", postgres::getPassword);
-    }
+@Autowired
+private InternalTradeRepository internalTradeRepo;
 
-    @Test
-    void containerIsRunning() {
-        // sanity: if this passes, all your wiring is correct.
-        // The real assertions live in TICKET-ADV045.
-    }
+@Autowired
+private ExternalTradeRepository externalTradeRepo;
+
+@Autowired
+private ReconResultRepository reconResultRepo;
+
+@Autowired
+private ReconciliationService reconciliationService;
+
+@Test
+void insertedTradesAreReconciledAndPersisted() {
+
+    Trade internal = new Trade(
+            "TRD-INT-1",
+            "CP-1",
+            "SAP.DE",
+            new BigDecimal("100"),
+            new BigDecimal("245.50"),
+            LocalDate.now());
+
+    Trade external = new Trade(
+            "TRD-INT-1",
+            "CP-1",
+            "SAP.DE",
+            new BigDecimal("100"),
+            new BigDecimal("245.50"),
+            LocalDate.now());
+
+    internalTradeRepo.save(internal);
+    externalTradeRepo.save(external);
+
+    reconciliationService.runRecon(
+            internalTradeRepo.findAll(),
+            externalTradeRepo.findAll());
+
+    List<ReconResult> persisted = reconResultRepo.findAll();
+
+    assertThat(persisted).hasSize(1);
+    assertThat(persisted.get(0).status())
+            .isEqualTo(ReconResult.Status.MATCHED);
+    assertThat(persisted.get(0).tradeRef())
+            .isEqualTo("TRD-INT-1");
 }

@@ -44,6 +44,10 @@ ARIA roles + aria-live for the trade feed
   </aside>
 
   <main class="layout__main" role="main">
+    <!-- Sample alert banner for testing TICKET-ADV102 -->
+    <div class="alert--danger">
+      Unmatched trades > 0
+    </div>
     <section aria-labelledby="kpi">
       <h2 id="kpi">Today at a glance</h2>
       <div class="stat-grid">
@@ -54,9 +58,13 @@ ARIA roles + aria-live for the trade feed
     </section>
 
     <section aria-labelledby="feed">
-      <h2 id="feed">Live trade feed</h2>
+      <h2 id="feed">
+        Live trade feed 
+        <!-- Connection status badge -->
+        <span id="sse-status" style="font-size: 0.8rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; background: var(--color-warning); color: var(--color-text);">Connecting...</span>
+      </h2>
       <!-- aria-live so screen readers announce new trades -->
-      <div id="trade-feed" role="status" aria-live="polite"></div>
+      <section id="trade-feed" class="trade-feed" role="status" aria-live="polite"></section>
     </section>
   </main>
 

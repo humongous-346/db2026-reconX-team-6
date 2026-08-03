@@ -1,7 +1,11 @@
 package com.dbtraining.reconx.repository.entity;
 
 import jakarta.persistence.*;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
+import org.hibernate.annotations.Type;
 
+import java.util.HashMap;
+import java.util.Map;
 /**
  * TICKET-ADV051 — JPA entity Instrument. JSONB metadata column wired via
  * the Hypersistence Utils JsonBinaryType on Postgres; H2 stores it as a
@@ -27,8 +31,9 @@ public class Instrument {
     @Column(nullable = false, length = 3)
     private String currency;
 
-    @Column(length = 12)
-    private String isin;
+    @Type(JsonBinaryType.class)
+    @Column(columnDefinition = "jsonb", nullable = false)
+    private Map<String, Object> metadata = new HashMap<>();
 
     public Instrument() {}
 
@@ -37,5 +42,11 @@ public class Instrument {
     public String getName()     { return name; }
     public String getAssetClass(){ return assetClass; }
     public String getCurrency() { return currency; }
-    public String getIsin()     { return isin; }
+    public Map<String, Object> getMetadata() {
+    return metadata;
+    }
+
+    public void setMetadata(Map<String, Object> metadata) {
+        this.metadata = metadata;
+    }
 }

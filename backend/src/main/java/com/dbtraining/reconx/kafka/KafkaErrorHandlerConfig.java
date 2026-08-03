@@ -1,6 +1,14 @@
 package com.dbtraining.reconx.kafka;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.TopicPartition;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.serializer.DeserializationException;
+import org.springframework.util.backoff.ExponentialBackOff;
 
 /**
  * ============================================================================
@@ -41,5 +49,28 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class KafkaErrorHandlerConfig {
 
-    // TODO(TICKET-ADV134 + ADV135): define the errorHandler @Bean — see comments above.
+    @Bean
+    public DefaultErrorHandler errorHandler(KafkaTemplate<Object, Object> template) {
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
+                template, KafkaErrorHandlerConfig::resolveDlqDestination);
+        // 1s, 2s, 4s — three attempts total, then DLQ (TICKET-ADV135).
+        ExponentialBackOff backoff = new ExponentialBackOff(1000L, 2.0);
+        backoff.setMaxElapsedTime(8_000L);
+
+        DefaultErrorHandler handler = new DefaultErrorHandler(recoverer, backoff);
+        // Poison-pill messages (bad JSON etc.) go straight to DLQ — retrying
+        // a deserialization failure three times is pure wasted time.
+        handler.addNotRetryableExceptions(DeserializationException.class);
+        return handler;
+    }
+
+    /**
+     * Routes a failed record to {@code <original-topic>-dlq}, preserving the
+     * original partition number so ops can correlate DLQ entries back to the
+     * partition they came from. Extracted as a static method (rather than an
+     * inline lambda) so the mapping is directly unit-testable.
+     */
+    static TopicPartition resolveDlqDestination(ConsumerRecord<?, ?> record, Exception ex) {
+        return new TopicPartition(record.topic() + "-dlq", record.partition());
+    }
 }

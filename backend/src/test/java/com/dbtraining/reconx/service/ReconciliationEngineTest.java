@@ -11,6 +11,8 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * TICKET-ADV040 / ADV041 / ADV042 — TDD: write the test FIRST, then the impl.
@@ -40,11 +42,31 @@ class ReconciliationEngineTest {
                 .isEqualTo(ReconResult.Status.MATCHED);
     }
 
-    @Test
-    void testReconcile_priceTolerance_withinThreshold() {
+    @ParameterizedTest(name = "price diff {0} stays within 1% tolerance -> MATCHED")
+    @ValueSource(strings = {"0.10", "0.50", "0.99"})
+    void testReconcile_priceTolerance_withinThreshold(String diff) {
         // TODO(TICKET-ADV041): prices 100.00 vs 100.50 + PRICE_TOLERANCE_1PCT rule -> status MATCHED.
-        org.junit.jupiter.api.Assertions.fail("TICKET-ADV041 not implemented yet");
-    }
+        
+         // given
+        EquityTrade internal = equity("EQU-20260603-0002", "100.00", "1000");
+
+        BigDecimal externalPrice = new BigDecimal("100.00").add(new BigDecimal(diff));
+
+        EquityTrade external = equity(
+                "EQU-20260603-0002",
+                externalPrice.toPlainString(),
+                "1000");
+
+        // when
+        List<ReconResult> out = engine.reconcile(
+                List.of(internal),
+                List.of(external),
+                ReconciliationRule.PRICE_TOLERANCE_1PCT);
+
+        // then
+        assertThat(out.get(0).status())
+                .isEqualTo(ReconResult.Status.MATCHED);
+  }
 
     @Test
     void testReconcile_missingCounterpartyTrade_returnsBreak() {

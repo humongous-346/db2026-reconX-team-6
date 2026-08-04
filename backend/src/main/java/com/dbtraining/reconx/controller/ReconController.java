@@ -11,8 +11,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -47,10 +45,9 @@ public class ReconController {
     @GetMapping("/jobs/{jobId}/results")
     @Operation(summary = "Get results for a recon job")
     public List<ReconBreak> results(@PathVariable String jobId) {
-        // TODO(TICKET-ADV069): once recon_jobs + recon_breaks tables are wired,
-        //   return breaks.findByJobId(jobId). Day-0 returns an empty list so
-        //   the React breaks-table renders "no breaks" gracefully.
-        return Collections.emptyList();
+        // recon_breaks does not carry a jobId column yet, so this trainer-copy
+        // stub returns all current open breaks.
+        return breaks.findAll();
     }
 
     @PutMapping("/results/{id}/resolve")

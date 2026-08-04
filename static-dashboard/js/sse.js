@@ -1,27 +1,110 @@
-// TICKET-ADV106 / ADV107 — EventSource live feed with prepend + slide-in animation.
+// File: static-dashboard/js/sse.js
 (function () {
   const feed = document.getElementById('trade-feed');
   if (!feed) return;
 
-  // Hardcoded demo events for the static dashboard (no backend required).
-  // Replace with: const sse = new EventSource('/api/v1/trades/stream');
-  const demoEvents = [
-    { tradeRef: 'EQU-20260603-0001', symbol: 'SAP.DE',  qty: 1000, price: 125.50, status: 'MATCHED' },
-    { tradeRef: 'FX-20260603-0001',  symbol: 'EUR/USD', qty: 1_000_000, price: 1.0852, status: 'PENDING' },
-    { tradeRef: 'EQU-20260603-0002', symbol: 'AAPL',    qty: 500,  price: 178.20, status: 'BREAK' },
-  ];
+  const badge = document.getElementById('sse-status');
+  const STREAM_URL = '/api/v1/trades/stream';
+  let sse = null;
 
-  function prepend(trade) {
-    const el = document.createElement('article');
-    el.className = 'trade-card trade-card--' + trade.status.toLowerCase();
-    el.innerHTML = `
-      <strong>${trade.tradeRef}</strong>
-      <span> ${trade.symbol} </span>
-      <span> qty=${trade.qty} </span>
-      <span> price=${trade.price} </span>
-      <span> [${trade.status}]</span>`;
-    feed.prepend(el);
+  // Helper to update the connection badge UI
+  function updateConnectionBadge(text, variant) {
+    if (!badge) return;
+    badge.textContent = text;
+    
+    if (variant === 'success') {
+      badge.style.backgroundColor = 'var(--color-success)';
+      badge.style.color = '#fff';
+    } else {
+      badge.style.backgroundColor = 'var(--color-warning)';
+      badge.style.color = 'var(--color-text)';
+    }
   }
 
-  demoEvents.forEach((e, i) => setTimeout(() => prepend(e), 500 * i));
+  // TICKET-ADV105: Step 5 - XSS guard helper
+  function escapeHtml(s) {
+    if (!s) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // TICKET-ADV105: Step 6 - Number formatters
+  const formatQty = new Intl.NumberFormat('en-US').format;
+  const formatPrice = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4
+  }).format;
+
+  // TICKET-ADV105: Step 1 - Refactored prepend function
+  function prependTradeRow(trade) {
+    // Step 2: Map trade.status to a CSS modifier
+    let statusModifier = '';
+    if (trade.status === 'MATCHED') {
+      statusModifier = 'trade-card--matched';
+    } else if (trade.status === 'UNMATCHED') {
+      statusModifier = 'trade-card--break';
+    }
+
+    // Step 3: Create element and assign classes
+    const row = document.createElement('article');
+    row.className = 'trade-card ' + statusModifier + ' trade-card--new';
+
+    // Step 4: Set innerHTML with safe interpolation and formatters
+    row.innerHTML = `
+      <header class="trade-card__header">
+        <strong>${escapeHtml(trade.tradeRef)}</strong>
+        <span>[${escapeHtml(trade.status)}]</span>
+      </header>
+      <div class="trade-card__body">
+        <span>${escapeHtml(trade.symbol)}</span>
+        <span>qty=${formatQty(trade.qty)}</span>
+        <span>price=${formatPrice(trade.price)} ${escapeHtml(trade.currency || '')}</span>
+      </div>
+    `;
+
+    // Step 7: Prepend to DOM and remove animation class after 500ms
+    feed.prepend(row);
+    setTimeout(() => {
+      row.classList.remove('trade-card--new');
+    }, 500);
+
+    // Step 8: Cap the DOM to a maximum of 50 entries
+    while (feed.children.length > 50) {
+      feed.lastElementChild.remove();
+    }
+  }
+
+  // Main connection function
+  function connect() {
+    sse = new EventSource(STREAM_URL);
+
+    sse.onopen = () => {
+      updateConnectionBadge('Live', 'success');
+    };
+
+    sse.onmessage = (event) => {
+      try {
+        const trade = JSON.parse(event.data);
+        prependTradeRow(trade);
+      } catch (err) {
+        console.error('Failed to parse SSE message:', err);
+      }
+    };
+
+    sse.onerror = () => {
+      updateConnectionBadge('Reconnecting...', 'warning');
+    };
+  }
+
+  // Clean up on navigation
+  window.addEventListener('beforeunload', () => {
+    sse?.close();
+  });
+
+  // Initialize
+  connect();
 })();

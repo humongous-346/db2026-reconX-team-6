@@ -1,15 +1,27 @@
-// TICKET-ADV102 — theme toggle, persisted to localStorage; first paint reads
-// the persisted value to avoid a FOUC flash of the wrong theme.
+// File: static-dashboard/js/theme.js
 (function () {
-  const stored = localStorage.getItem('reconx-theme') || 'light';
-  document.documentElement.dataset.theme = stored;
-
+  // Wait for the DOM to fully load before attaching the event listener
   document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('theme-toggle');
-    btn && btn.addEventListener('click', () => {
-      const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-      document.documentElement.dataset.theme = next;
-      localStorage.setItem('reconx-theme', next);
-    });
+    
+    // Set initial aria-pressed state based on current theme
+    if (btn) {
+      const currentTheme = document.documentElement.dataset.theme;
+      btn.setAttribute('aria-pressed', currentTheme === 'dark');
+      
+      btn.addEventListener('click', () => {
+        // Calculate the next theme
+        const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+        
+        // Apply it to the HTML tag
+        document.documentElement.dataset.theme = next;
+        
+        // Save it to localStorage so it persists on reload
+        localStorage.setItem('reconx-theme', next);
+        
+        // Update accessibility attribute
+        btn.setAttribute('aria-pressed', next === 'dark');
+      });
+    }
   });
 })();

@@ -29,4 +29,22 @@ public record TradeEvent(
     public enum EventType {
         TRADE_CREATED, TRADE_UPDATED, TRADE_CANCELLED
     }
+
+    /** TICKET-ADV130 — factory for a newly-created trade (no prior state). */
+    public static TradeEvent created(String tradeRef, String actor, String after) {
+        return new TradeEvent(UUID.randomUUID(), tradeRef, EventType.TRADE_CREATED,
+                Instant.now(), actor, null, after);
+    }
+
+    /** TICKET-ADV130 — factory for a trade update (carries both snapshots). */
+    public static TradeEvent updated(String tradeRef, String actor, String before, String after) {
+        return new TradeEvent(UUID.randomUUID(), tradeRef, EventType.TRADE_UPDATED,
+                Instant.now(), actor, before, after);
+    }
+
+    /** TICKET-ADV130 — factory for a cancellation (no resulting state). */
+    public static TradeEvent cancelled(String tradeRef, String actor, String before) {
+        return new TradeEvent(UUID.randomUUID(), tradeRef, EventType.TRADE_CANCELLED,
+                Instant.now(), actor, before, null);
+    }
 }

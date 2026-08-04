@@ -32,6 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * TICKET-ADV075 — authenticated TRADER create returns 201.
  * TICKET-ADV076 — unauthenticated create returns 401.
+ * TICKET-ADV077 — authenticated VIEWER create returns 403.
  */
 @WebMvcTest(TradeController.class)
 @Import(SecurityConfig.class)
@@ -83,5 +84,15 @@ class TradeControllerWebMvcTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(validRequest())))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "VIEWER")
+    void testCreateTrade_viewerRole_returns403() throws Exception {
+        mockMvc.perform(post("/v1/trades")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest()))
+                        .with(csrf()))
+                .andExpect(status().isForbidden());
     }
 }

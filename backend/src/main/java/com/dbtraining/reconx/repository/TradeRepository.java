@@ -24,14 +24,16 @@ public interface TradeRepository
     Optional<Trade> findByTradeRef(String tradeRef);
 
     @Query("""
-        SELECT t FROM Trade t
-        WHERE t.tradeDate BETWEEN :from AND :to
-          AND (:status IS NULL OR t.status = :status)
-        """)
+    SELECT t FROM Trade t
+    WHERE t.tradeDate BETWEEN :from AND :to
+      AND (:status IS NULL OR t.status = :status)
+      AND (:counterpartyId IS NULL OR t.counterparty.id = :counterpartyId)
+    """)
     Page<Trade> findByFilters(@Param("from") LocalDate from,
-                              @Param("to") LocalDate to,
-                              @Param("status") String status,
-                              Pageable pageable);
+                          @Param("to") LocalDate to,
+                          @Param("status") String status,
+                          @Param("counterpartyId") Long counterpartyId,
+                          Pageable pageable);
 
     long countByStatus(String status);
 }

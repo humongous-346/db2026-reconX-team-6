@@ -29,3 +29,16 @@ groups:
           severity: critical
         annotations:
           summary: "Messages landing in trade-events-dlq"
+
+      # TICKET-ADV142 — fires on ANY DLQ activity (not just a 5m rate window
+      # like KafkaDlqGrowing above). A single DLQ'd message already means
+      # ADV134's recoverer caught a real failure ADV135's retries couldn't
+      # clear, so ops should know immediately, not after a 5-minute window.
+      - alert: KafkaDlqMessages
+        expr: sum(kafka_consumer_records_consumed_total{topic="trade-events-dlq"}) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Messages in trade-events DLQ"
+          description: "At least one message has been DLQ'd in the last minute. Inspect /api/v1/admin/dlq."

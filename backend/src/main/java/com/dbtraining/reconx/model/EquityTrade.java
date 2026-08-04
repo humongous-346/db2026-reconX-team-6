@@ -72,23 +72,25 @@ public final class EquityTrade extends Trade {
     public long counterpartyId()     { return counterpartyId; }
 
     /** equals: two EquityTrades are equal iff their tradeRef is equal. */
-    @Override
-    public boolean equals(Object o) {
-        // TODO(TICKET-ADV028): pattern-match on EquityTrade and compare tradeRef.
-        throw new UnsupportedOperationException("TICKET-ADV028");
-    }
+      @Override
+public boolean equals(Object o) {
+    return (o instanceof EquityTrade other) && tradeRef.equals(other.tradeRef);
+}
 
-    @Override public int hashCode() {
-        // TODO(TICKET-ADV028): hash from tradeRef so it pairs with equals().
-        throw new UnsupportedOperationException("TICKET-ADV028");
-    }
+@Override public int hashCode() { return tradeRef.hashCode(); }
 
-    @Override
-    public String toString() {
-        // TODO(TICKET-ADV030): "EquityTrade[ref=..., symbol=..., qty=..., price=... CCY, side=...]"
-        //                     — must NOT leak counterparty PII.
-        throw new UnsupportedOperationException("TICKET-ADV030");
-    }
+      @Override
+public String toString() {
+    // NOTE: Deliberately excludes counterpartyId and other sensitive fields.
+    return "EquityTrade[ref=%s, symbol=%s, qty=%s, price=%s %s, side=%s]"
+            .formatted(
+                    tradeRef,
+                    instrumentSymbol,
+                    quantity.toPlainString(),
+                    price.toPlainString(),
+                    currency.getCurrencyCode(),
+                    side);
+}
 
     /** Fluent builder. Required fields validated in {@link #build()}. */
     public static final class Builder {

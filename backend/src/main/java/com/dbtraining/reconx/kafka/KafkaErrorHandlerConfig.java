@@ -53,8 +53,11 @@ public class KafkaErrorHandlerConfig {
     public DefaultErrorHandler errorHandler(KafkaTemplate<Object, Object> template) {
         DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
                 template, KafkaErrorHandlerConfig::resolveDlqDestination);
+        // 1s, 2s, 4s — three attempts total, then DLQ (TICKET-ADV135).
+        ExponentialBackOff backoff = new ExponentialBackOff(1000L, 2.0);
+        backoff.setMaxElapsedTime(8_000L);
 
-        DefaultErrorHandler handler = new DefaultErrorHandler(recoverer, retryBackOff());
+        DefaultErrorHandler handler = new DefaultErrorHandler(recoverer, backoff);
         // Poison-pill messages (bad JSON etc.) go straight to DLQ — retrying
         // a deserialization failure three times is pure wasted time.
         handler.addNotRetryableExceptions(DeserializationException.class);
@@ -69,27 +72,5 @@ public class KafkaErrorHandlerConfig {
      */
     static TopicPartition resolveDlqDestination(ConsumerRecord<?, ?> record, Exception ex) {
         return new TopicPartition(record.topic() + "-dlq", record.partition());
-    }
-
-    /**
-     * TICKET-ADV135 — retries at ~1s, ~2s, ~4s (three attempts total), then
-     * the recoverer above publishes to DLQ. Exponential rather than fixed
-     * backoff so a struggling downstream gets breathing room instead of
-     * being hammered every second.
-     *
-     * NOTE: Spring's {@link ExponentialBackOffExecution} compares the
-     * *cumulative elapsed time so far* against maxElapsedTime before issuing
-     * the next interval — it does not look ahead to whether that next
-     * interval would overshoot the budget. After three retries (1000+2000+
-     * 4000=7000ms elapsed), a maxElapsedTime of 8000ms is still >7000ms, so
-     * Spring issues a *fourth* 8s retry before stopping. Measured directly
-     * against spring-core 6.2.7. 7000ms is the value that actually stops
-     * after exactly three retries — use that, not 8000ms, if you want the
-     * "roughly three attempts" behaviour the ticket describes.
-     */
-    static ExponentialBackOff retryBackOff() {
-        ExponentialBackOff backoff = new ExponentialBackOff(1000L, 2.0);
-        backoff.setMaxElapsedTime(7_000L);
-        return backoff;
     }
 }

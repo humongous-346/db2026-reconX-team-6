@@ -159,6 +159,17 @@ live in HttpOnly cookies for 7 days.
 
 ---
 
+## API versioning
+
+Every REST endpoint is served under `/api/v1/...` — the version segment is
+part of each controller's `@RequestMapping`, not just the router. The rule:
+**breaking changes ship under a new version segment** (`/api/v2/...`); the
+old segment keeps responding — with a clear `410 Gone` plus `Deprecation`,
+`Sunset`, and `Link` headers, not a bare 404 — until its published Sunset
+date. See `TradeController.oldSearch` for the pattern.
+
+---
+
 ## Deploy to the demo laptop (Day 10)
 
 The deploy story is **GitHub Actions builds + pushes Docker images to GHCR;

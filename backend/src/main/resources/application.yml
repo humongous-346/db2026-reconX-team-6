@@ -18,6 +18,10 @@ spring:
 
   # ADV012 — Liquibase classpath wiring (the classic starter bug is missing the
   # `classpath:` prefix here, which causes a silent skip on JAR builds).
+  sql:
+    init:
+      mode: never
+      
   liquibase:
     change-log: classpath:/db/changelog/db.changelog-master.xml
     enabled: true
@@ -54,6 +58,10 @@ spring:
         spring.json.trusted.packages: com.dbtraining.reconx.dto
         spring.json.use.type.headers: false
         spring.json.value.default.type: com.dbtraining.reconx.dto.TradeEvent
+        # TICKET-ADV139 — exports the Kafka consumer's built-in JMX/client
+        # metrics (fetch rate, records-lag, etc.) as Micrometer meters, which
+        # /actuator/prometheus then scrapes.
+        metric.reporters: io.micrometer.core.instrument.binder.kafka.KafkaClientMetrics
 
 server:
   servlet:
@@ -84,6 +92,12 @@ management:
         http.server.requests: 0.5, 0.95, 0.99
     tags:
       application: ${spring.application.name}
+    # TICKET-ADV139 — Micrometer's Kafka client-metrics binder (consumer lag,
+    # throughput) only activates when this flag is on, in addition to the
+    # metric.reporters property set under spring.kafka.consumer.properties.
+    binders:
+      kafka:
+        enabled: true
 
 # =============================================================================
 # TICKET-ADV072 — JWT signing config (NEVER commit a real secret; override per env)

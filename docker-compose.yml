@@ -57,7 +57,7 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
       kafka:    {condition: service_healthy}
-    ports: ["8080:8080"]
+    ports: ["8081:8081"]
     environment:
       SPRING_PROFILES_ACTIVE: uat
       POSTGRES_HOST: postgres
@@ -69,6 +69,7 @@ services:
       JWT_SECRET: ${JWT_SECRET:-secret}
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8081/api/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 10

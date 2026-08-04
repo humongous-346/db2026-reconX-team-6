@@ -83,10 +83,21 @@ public final class DerivativeTrade extends Trade {
         throw new UnsupportedOperationException("TICKET-ADV028");
     }
 
-    @Override public String toString() {
-        // TODO(TICKET-ADV030): "DerivativeTrade[ref=..., TYPE UNDERLYING on date, strike=... CCY, qty=..., expiry=..., side=...]"
-        throw new UnsupportedOperationException("TICKET-ADV030");
-    }
+    @Override
+public String toString() {
+    // NOTE: Deliberately excludes counterpartyId and other sensitive fields.
+    return "DerivativeTrade[ref=%s, %s %s on %s, strike=%s %s, qty=%s, expiry=%s, side=%s]"
+            .formatted(
+                    tradeRef,
+                    optionType,
+                    underlying,
+                    tradeDate,
+                    strike.toPlainString(),
+                    currency.getCurrencyCode(),
+                    quantity.toPlainString(),
+                    expiry,
+                    side);
+}
 
     public static final class Builder {
         private TradeRef tradeRef;

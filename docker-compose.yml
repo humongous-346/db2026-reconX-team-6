@@ -1,8 +1,8 @@
-# =============================================================================
-# TICKET-ADV148 — 7-service stack: backend, frontend, postgres, kafka, zookeeper,
-#                prometheus, grafana (+ optional kafdrop behind "debug" profile)
-# TICKET-ADV152 — Health checks gate dependent services
-# =============================================================================
+# ==========================================
+# 7-service stack: backend, frontend,
+#                  prometheus, grafana
+# Health checks gate dependent services
+# ==========================================
 services:
 
   postgres:
@@ -11,7 +11,7 @@ services:
     environment:
       POSTGRES_DB:       reconx
       POSTGRES_USER:     reconx_user
-      POSTGRES_PASSWORD: reconx_pass
+      POSTGRES_PASSWORD: reconx_password
     ports: ["5432:5432"]
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -23,15 +23,15 @@ services:
     networks: [reconx]
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.6.0
+    image: confluentinc/cp-zookeeper:latest
     container_name: reconx-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME:   2000
+      ZOOKEEPER_TICK_TIME: 2000
     networks: [reconx]
 
   kafka:
-    image: confluentinc/cp-kafka:7.6.0
+    image: confluentinc/cp-kafka:latest
     container_name: reconx-kafka
     depends_on: [zookeeper]
     ports: ["9092:9092"]
@@ -44,7 +44,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list || exit 1"]
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -52,7 +52,7 @@ services:
 
   backend:
     build: ./backend
-    image: ghcr.io/sidoncode/reconx-backend:latest
+    image: ghcr.io/sidoncode/reconx-backend
     container_name: reconx-backend
     depends_on:
       postgres: {condition: service_healthy}
@@ -62,13 +62,13 @@ services:
       SPRING_PROFILES_ACTIVE: uat
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
-      POSTGRES_DB:   reconx
+      POSTGRES_DB: reconx
       POSTGRES_USER: reconx_user
-      POSTGRES_PASSWORD: reconx_pass
+      POSTGRES_PASSWORD: reconx_password
       KAFKA_BOOTSTRAP: kafka:29092
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me-32-bytes-min!!}
+      JWT_SECRET: ${JWT_SECRET:-secret}
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/api/actuator/health"]
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -76,7 +76,7 @@ services:
 
   frontend:
     build: ./frontend
-    image: ghcr.io/sidoncode/reconx-frontend:latest
+    image: ghcr.io/sidoncode/reconx-frontend
     container_name: reconx-frontend
     depends_on:
       backend: {condition: service_healthy}
@@ -84,11 +84,11 @@ services:
     networks: [reconx]
 
   prometheus:
-    image: prom/prometheus:v2.54.1
+    image: prom/prometheus:v2.54.0
     container_name: reconx-prometheus
     volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml
     ports: ["9090:9090"]
     networks: [reconx]
 
@@ -97,18 +97,18 @@ services:
     container_name: reconx-grafana
     depends_on: [prometheus]
     environment:
-      GF_SECURITY_ADMIN_USER:     admin
+      GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
-      GF_USERS_ALLOW_SIGN_UP:     "false"
+      GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
       - grafana_data:/var/lib/grafana
     ports: ["3000:3000"]
     networks: [reconx]
 
-  # Optional — bring up with `--profile debug`
+  # Optional - bring up with `--profile debug`
   kafdrop:
-    image: obsidiandynamics/kafdrop:4.0.1
+    image: obsidiandynamics/kafdrop
     container_name: reconx-kafdrop
     profiles: ["debug"]
     depends_on: [kafka]
